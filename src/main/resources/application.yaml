@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: Stroy1Click - OrderService
+
+otel:
+  service:
+    name: "confirmation-code-service"
+  traces:
+    exporter: "otlp"
+    sampler: "always_on"
+  metrics:
+    exporter: "otlp"
+    export:
+      interval: 5000
+  logs:
+    exporter: "otlp"
+  exporter:
+    otlp:
+      protocol: "grpc"
+      endpoint: "http://localhost:4317"
