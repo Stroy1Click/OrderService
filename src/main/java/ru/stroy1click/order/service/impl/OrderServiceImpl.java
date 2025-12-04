@@ -6,10 +6,15 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.stroy1click.order.cache.CacheClear;
+import ru.stroy1click.order.client.ProductClient;
+import ru.stroy1click.order.client.UserClient;
 import ru.stroy1click.order.dto.OrderDto;
 import ru.stroy1click.order.entity.Order;
+import ru.stroy1click.order.entity.OrderItem;
 import ru.stroy1click.order.exception.NotFoundException;
+import ru.stroy1click.order.mapper.OrderItemMapper;
 import ru.stroy1click.order.mapper.OrderMapper;
 import ru.stroy1click.order.repository.OrderRepository;
 import ru.stroy1click.order.service.OrderService;
@@ -20,6 +25,7 @@ import java.util.Locale;
 
 @Slf4j
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
@@ -27,9 +33,15 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper mapper;
 
+    private final OrderItemMapper orderItemMapper;
+
     private final MessageSource messageSource;
 
     private final CacheClear cacheClear;
+
+    private final UserClient userClient;
+
+    private final ProductClient productClient;
 
     @Override
     @Cacheable(cacheNames = "order", key = "#id")
@@ -38,7 +50,7 @@ public class OrderServiceImpl implements OrderService {
         return this.mapper.toDto(this.orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(
                         this.messageSource.getMessage(
-                                "",
+                                "error.order.not_found",
                                 null,
                                 Locale.getDefault()
                         )
@@ -55,15 +67,31 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     @CacheEvict(cacheNames = "ordersByUserId", key = "#orderDto.userId")
     public void create(OrderDto orderDto) {
         log.info("create {}", orderDto);
-        this.orderRepository.save(
-                this.mapper.toEntity(orderDto)
-        );
+
+        this.userClient.get(orderDto.getUserId());
+        orderDto.getOrderItems().stream()
+                .map(orderItemDto -> this.productClient.get(orderItemDto.getProductId()))
+                .toList();
+
+        orderDto.setId(null);
+        Order order = this.mapper.toEntity(orderDto);
+
+        List<OrderItem> orderItems = this.orderItemMapper.toEntity(orderDto.getOrderItems())
+                .stream()
+                .peek(i -> i.setOrder(order))
+                .toList();
+
+        order.setOrderItems(orderItems);
+
+        this.orderRepository.save(order);
     }
 
     @Override
+    @Transactional
     @CacheEvict(cacheNames = "order", key = "#id")
     public void update(Long id, OrderDto orderDto) {
         log.info("update {}, {}", id, orderDto);
@@ -71,11 +99,10 @@ public class OrderServiceImpl implements OrderService {
             OrderDto updatedOrderDto = OrderDto.builder()
                     .id(id)
                     .notes(orderDto.getNotes())
-                    .quantity(orderDto.getQuantity())
                     .orderStatus(orderDto.getOrderStatus())
                     .createdAt(orderDto.getCreatedAt())
                     .updatedAt(LocalDateTime.now())
-                    .productId(orderDto.getProductId())
+                    .orderItems(orderDto.getOrderItems())
                     .contactPhone(orderDto.getContactPhone())
                     .userId(orderDto.getUserId())
                     .build();
@@ -84,7 +111,7 @@ public class OrderServiceImpl implements OrderService {
         }, () -> {
             throw new NotFoundException(
                     this.messageSource.getMessage(
-                            "error.category.not_found",
+                            "error.order.not_found",
                             null,
                             Locale.getDefault()
                     )
@@ -93,13 +120,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     @CacheEvict(cacheNames = "order", key = "#id")
     public void delete(Long id) {
         log.info("delete {}", id);
         Order order = this.orderRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(
                         this.messageSource.getMessage(
-                                "error.category.not_found",
+                                "error.order.not_found",
                                 null,
                                 Locale.getDefault()
                         )

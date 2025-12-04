@@ -8,9 +8,10 @@ import lombok.NoArgsConstructor;
 import ru.stroy1click.order.model.OrderStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
-@Table(schema = "product", name = "orders")
+@Table(schema = "ordering", name = "orders")
 @Entity
 @Builder
 @AllArgsConstructor
@@ -23,8 +24,6 @@ public class Order {
 
     private String notes;
 
-    private Integer quantity;
-
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
@@ -32,9 +31,14 @@ public class Order {
 
     private LocalDateTime updatedAt;
 
-    private Integer productId;
-
     private String contactPhone;
 
     private Long userId;
+
+    /**
+     * OrderItem существует только внутри Order и никогда не используется отдельно, так что сделал
+     * cascade = ALL + orphanRemoval = true. Это удобнее и проще.
+     */
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> orderItems;
 }
