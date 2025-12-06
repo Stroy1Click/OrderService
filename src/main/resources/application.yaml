@@ -1,0 +1,105 @@
+spring:
+  application:
+    name: OrderService
+  cache:
+    type: redis
+    cache-names: redis-cache
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    open-in-view: false
+  datasource:
+    url: jdbc:postgresql://localhost:5434/stroy1click
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    url: jdbc:postgresql://localhost:5434/stroy1click
+    user: postgres
+    password: password
+    baseline-on-migrate: true
+  messages:
+    basename: messages
+    encoding: UTF-8
+
+redisson:
+  host: 127.0.0.1
+  port: 6379
+
+url:
+  service:
+    product: http://localhost:7070/api/v1/products
+    user: http://localhost:8080/api/v1/users
+    notification: http://localhost:2020/api/v1/notifications
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      notificationClient:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 120s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      userClient:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 120s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        ignore-exceptions:
+          - ru.stroy1click.order.exception.NotFoundException
+      productClient:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 120s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        ignore-exceptions:
+          - ru.stroy1click.order.exception.NotFoundException
+  ratelimiter:
+    instances:
+      orderLimiter:
+        limitForPeriod: 100
+        limitRefreshPeriod: 1s
+
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
+otel:
+  service:
+    name: "confirmation-code-service"
+  traces:
+    exporter: "otlp"
+    sampler: "always_on"
+  metrics:
+    exporter: "otlp"
+    export:
+      interval: 5000
+  logs:
+    exporter: "otlp"
+  exporter:
+    otlp:
+      protocol: "grpc"
+      endpoint: "http://localhost:4317"
+server:
+  port: 1010
