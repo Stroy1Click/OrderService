@@ -11,6 +11,7 @@ import ru.stroy1click.order.cache.CacheClear;
 import ru.stroy1click.order.client.ProductClient;
 import ru.stroy1click.order.client.UserClient;
 import ru.stroy1click.order.dto.OrderDto;
+import ru.stroy1click.order.dto.OrderItemDto;
 import ru.stroy1click.order.entity.Order;
 import ru.stroy1click.order.entity.OrderItem;
 import ru.stroy1click.order.exception.NotFoundException;
@@ -96,15 +97,16 @@ public class OrderServiceImpl implements OrderService {
     public void update(Long id, OrderDto orderDto) {
         log.info("update {}, {}", id, orderDto);
         this.orderRepository.findById(id).ifPresentOrElse(order -> {
+            List<OrderItemDto> orderItems = this.orderItemMapper.toDto(order.getOrderItems());
             OrderDto updatedOrderDto = OrderDto.builder()
                     .id(id)
                     .notes(orderDto.getNotes())
                     .orderStatus(orderDto.getOrderStatus())
                     .createdAt(orderDto.getCreatedAt())
                     .updatedAt(LocalDateTime.now())
-                    .orderItems(orderDto.getOrderItems())
+                    .orderItems(orderItems)
                     .contactPhone(orderDto.getContactPhone())
-                    .userId(orderDto.getUserId())
+                    .userId(order.getUserId())
                     .build();
 
             this.orderRepository.save(this.mapper.toEntity(updatedOrderDto));
@@ -136,6 +138,6 @@ public class OrderServiceImpl implements OrderService {
 
         this.orderRepository.delete(order);
 
-        this.cacheClear.clearOrdersByUserId(id);
+        this.cacheClear.clearOrdersByUserId(order.getUserId());
     }
 }

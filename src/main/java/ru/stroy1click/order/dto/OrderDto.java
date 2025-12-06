@@ -19,7 +19,6 @@ import java.util.List;
 @NoArgsConstructor
 public class OrderDto {
 
-    @NotNull(message = "{validate.orderdto.id.not_null}")
     private Long id;
 
     @Length(max = 10_000, message = "{}")
