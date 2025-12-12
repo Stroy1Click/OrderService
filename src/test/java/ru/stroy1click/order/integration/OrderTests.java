@@ -8,6 +8,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import ru.stroy1click.order.client.NotificationClient;
 import ru.stroy1click.order.client.ProductClient;
 import ru.stroy1click.order.client.UserClient;
 import ru.stroy1click.order.dto.OrderDto;
@@ -18,6 +19,8 @@ import ru.stroy1click.order.model.OrderStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 
@@ -33,6 +36,9 @@ class OrderTests {
 
     @MockitoBean
     private ProductClient productClient;
+
+    @MockitoBean
+    private NotificationClient notificationClient;
 
     @Test
     public void getOrder_ShouldReturnOrderAndItems() {
@@ -54,6 +60,7 @@ class OrderTests {
     public void createOrder_ShouldReturnSuccessfulMessage() {
         when(this.userClient.get(600L)).thenReturn(new UserDto());
         when(this.productClient.get(33)).thenReturn(new ProductDto());
+        doNothing().when(this.notificationClient).sendOrderNotification(any(OrderDto.class));
 
         OrderItemDto item1 = OrderItemDto.builder().productId(33).quantity(3).build();
 

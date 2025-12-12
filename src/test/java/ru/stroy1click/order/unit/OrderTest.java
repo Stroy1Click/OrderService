@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.context.MessageSource;
 import ru.stroy1click.order.cache.CacheClear;
+import ru.stroy1click.order.client.NotificationClient;
 import ru.stroy1click.order.client.ProductClient;
 import ru.stroy1click.order.client.UserClient;
 import ru.stroy1click.order.dto.OrderDto;
@@ -26,10 +27,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class OrderTest {
-
-    @InjectMocks
-    private OrderServiceImpl orderService;
-
     @Mock
     private OrderRepository orderRepository;
 
@@ -51,6 +48,13 @@ class OrderTest {
     @Mock
     private ProductClient productClient;
 
+    @Mock
+    private NotificationClient notificationClient;
+
+    @InjectMocks
+    private OrderServiceImpl orderService;
+
+
     private Long orderId;
     private Long userId;
     private Order order;
@@ -59,7 +63,7 @@ class OrderTest {
     private OrderItemDto orderItemDto;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
 
         // Инициализация общих данных для всех тестов
@@ -92,7 +96,7 @@ class OrderTest {
 
 
     @Test
-    void get_ShouldReturnOrderDto_WhenOrderExists() {
+    public void get_ShouldReturnOrderDto_WhenOrderExists() {
         when(this.orderRepository.findById(this.orderId)).thenReturn(Optional.of(this.order));
         when(this.orderMapper.toDto(this.order)).thenReturn(this.orderDto);
 
@@ -105,7 +109,7 @@ class OrderTest {
     }
 
     @Test
-    void get_ShouldThrowNotFoundException_WhenOrderDoesNotExist() {
+    public void get_ShouldThrowNotFoundException_WhenOrderDoesNotExist() {
         when(this.orderRepository.findById(this.orderId)).thenReturn(Optional.empty());
         when(this.messageSource.getMessage(any(), any(), any())).thenReturn("Заказ не найден");
 
@@ -115,7 +119,7 @@ class OrderTest {
 
 
     @Test
-    void getByUserId_ShouldReturnList_WhenExists() {
+    public void getByUserId_ShouldReturnList_WhenExists() {
         List<Order> orders = List.of(this.order);
         List<OrderDto> dtoList = List.of(this.orderDto);
 
@@ -131,12 +135,12 @@ class OrderTest {
 
 
     @Test
-    void create_ShouldSaveOrder_WhenInputValid() {
+    public void create_ShouldSaveOrder_WhenInputValid() {
         Order newOrderEntity = new Order();
 
         when(this.orderMapper.toEntity(this.orderDto)).thenReturn(newOrderEntity);
         when(this.orderItemMapper.toEntity(anyList())).thenReturn(List.of(this.orderItem));
-
+        doNothing().when(this.notificationClient).sendOrderNotification(any(OrderDto.class));
 
         when(this.productClient.get(100)).thenReturn(new ProductDto());
 
@@ -150,7 +154,7 @@ class OrderTest {
 
 
     @Test
-    void update_ShouldSaveUpdatedOrder_WhenExists() {
+    public void update_ShouldSaveUpdatedOrder_WhenExists() {
         when(this.orderRepository.findById(this.orderId)).thenReturn(Optional.of(this.order));
         when(this.orderMapper.toEntity(any(OrderDto.class))).thenReturn(this.order);
 
@@ -168,7 +172,7 @@ class OrderTest {
     }
 
     @Test
-    void update_ShouldThrowNotFoundException_WhenOrderDoesNotExist() {
+    public void update_ShouldThrowNotFoundException_WhenOrderDoesNotExist() {
         when(this.orderRepository.findById(this.orderId)).thenReturn(Optional.empty());
         when(this.messageSource.getMessage(any(), any(), any())).thenReturn("Заказ не найден");
 
@@ -177,7 +181,7 @@ class OrderTest {
     }
 
     @Test
-    void delete_ShouldDeleteOrder_WhenExists() {
+    public void delete_ShouldDeleteOrder_WhenExists() {
         when(this.orderRepository.findById(this.orderId)).thenReturn(Optional.of(this.order));
 
         this.orderService.delete(this.orderId);
@@ -187,7 +191,7 @@ class OrderTest {
     }
 
     @Test
-    void delete_ShouldThrowNotFoundException_WhenNotFound() {
+    public void delete_ShouldThrowNotFoundException_WhenNotFound() {
         when(this.orderRepository.findById(this.orderId)).thenReturn(Optional.empty());
         when(this.messageSource.getMessage(any(), any(), any())).thenReturn("Заказ не найден");
 

@@ -8,6 +8,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.stroy1click.order.cache.CacheClear;
+import ru.stroy1click.order.client.NotificationClient;
 import ru.stroy1click.order.client.ProductClient;
 import ru.stroy1click.order.client.UserClient;
 import ru.stroy1click.order.dto.OrderDto;
@@ -43,6 +44,8 @@ public class OrderServiceImpl implements OrderService {
     private final UserClient userClient;
 
     private final ProductClient productClient;
+
+    private final NotificationClient notificationClient;
 
     @Override
     @Cacheable(cacheNames = "order", key = "#id")
@@ -83,12 +86,18 @@ public class OrderServiceImpl implements OrderService {
 
         List<OrderItem> orderItems = this.orderItemMapper.toEntity(orderDto.getOrderItems())
                 .stream()
-                .peek(i -> i.setOrder(order))
+                .peek(orderItem -> orderItem.setOrder(order))
                 .toList();
 
         order.setOrderItems(orderItems);
 
-        this.orderRepository.save(order);
+        Order createdOrder = this.orderRepository.save(order);
+
+        OrderDto dto =  this.mapper.toDto(createdOrder);
+
+        this.notificationClient.sendOrderNotification(
+               dto
+        );
     }
 
     @Override
