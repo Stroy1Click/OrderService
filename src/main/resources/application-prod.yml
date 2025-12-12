@@ -1,6 +1,9 @@
 spring:
   application:
     name: OrderService
+  config:
+    activate:
+      on-profile: prod
   cache:
     type: redis
     cache-names: redis-cache

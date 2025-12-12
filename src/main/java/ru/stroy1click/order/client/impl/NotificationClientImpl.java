@@ -3,8 +3,8 @@ package ru.stroy1click.order.client.impl;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
@@ -20,16 +20,15 @@ public class NotificationClientImpl implements NotificationClient {
 
     private final RestClient restClient;
 
-    private final MessageSource messageSource;
 
-    public NotificationClientImpl(@Value(value = "${url.service.notification}") String url, MessageSource messageSource) {
+    public NotificationClientImpl(@Value(value = "${url.service.notification}") String url) {
         this.restClient = RestClient.builder()
                 .baseUrl(url)
                 .build();
-        this.messageSource = messageSource;
     }
 
     @Override
+    @Async("asyncTaskExecutor")
     public void sendOrderNotification(OrderDto orderDto) {
         log.info("sendOrderNotification {}", orderDto);
         try {
