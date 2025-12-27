@@ -111,7 +111,7 @@ class OrderTest {
     @Test
     public void get_ShouldThrowNotFoundException_WhenOrderDoesNotExist() {
         when(this.orderRepository.findById(this.orderId)).thenReturn(Optional.empty());
-        when(this.messageSource.getMessage(any(), any(), any())).thenReturn("Заказ не найден");
+        when(this.messageSource.getMessage(eq("error.order.not_found"), any(), any())).thenReturn("Заказ не найден");
 
         assertThrows(NotFoundException.class, () -> this.orderService.get(this.orderId));
         verify(this.orderRepository).findById(this.orderId);
@@ -174,7 +174,7 @@ class OrderTest {
     @Test
     public void update_ShouldThrowNotFoundException_WhenOrderDoesNotExist() {
         when(this.orderRepository.findById(this.orderId)).thenReturn(Optional.empty());
-        when(this.messageSource.getMessage(any(), any(), any())).thenReturn("Заказ не найден");
+        when(this.messageSource.getMessage(eq("error.order.not_found"), any(), any())).thenReturn("Заказ не найден");
 
         assertThrows(NotFoundException.class, () -> this.orderService.update(this.orderId, this.orderDto));
         verify(this.orderRepository, never()).save(any());
@@ -193,7 +193,7 @@ class OrderTest {
     @Test
     public void delete_ShouldThrowNotFoundException_WhenNotFound() {
         when(this.orderRepository.findById(this.orderId)).thenReturn(Optional.empty());
-        when(this.messageSource.getMessage(any(), any(), any())).thenReturn("Заказ не найден");
+        when(this.messageSource.getMessage(eq("error.order.not_found"), any(), any())).thenReturn("Заказ не найден");
 
         assertThrows(NotFoundException.class, () -> this.orderService.delete(this.orderId));
         verify(this.cacheClear, never()).clearOrdersByUserId(any());

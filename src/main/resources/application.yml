@@ -60,6 +60,7 @@ resilience4j:
         automaticTransitionFromOpenToHalfOpenEnabled: true
         ignore-exceptions:
           - ru.stroy1click.order.exception.NotFoundException
+          - ru.stroy1click.order.exception.ValidationException
       productClient:
         registerHealthIndicator: true
         slidingWindowType: COUNT_BASED
@@ -71,6 +72,7 @@ resilience4j:
         automaticTransitionFromOpenToHalfOpenEnabled: true
         ignore-exceptions:
           - ru.stroy1click.order.exception.NotFoundException
+          - ru.stroy1click.order.exception.ValidationException
   ratelimiter:
     instances:
       orderLimiter:
