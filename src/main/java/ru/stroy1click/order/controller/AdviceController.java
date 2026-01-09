@@ -9,7 +9,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.stroy1click.order.exception.NotFoundException;
-import ru.stroy1click.order.exception.ServerErrorResponseException;
+import ru.stroy1click.order.exception.ServiceErrorResponseException;
 import ru.stroy1click.order.exception.ServiceUnavailableException;
 import ru.stroy1click.order.exception.ValidationException;
 
@@ -74,7 +74,7 @@ public class AdviceController {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.SERVICE_UNAVAILABLE,
                 this.messageSource.getMessage(
-                        "error.description.service_unavailable",
+                        "error.details.service_unavailable",
                         null,
                         Locale.getDefault()
                 )
@@ -92,7 +92,7 @@ public class AdviceController {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.SERVICE_UNAVAILABLE,
                 this.messageSource.getMessage(
-                        "error.description.service_unavailable",
+                        "error.details.service_unavailable",
                         null,
                         Locale.getDefault()
                 )
@@ -105,8 +105,8 @@ public class AdviceController {
         return problemDetail;
     }
 
-    @ExceptionHandler(ServerErrorResponseException.class)
-    public ProblemDetail handleException(ServerErrorResponseException exception){
+    @ExceptionHandler(ServiceErrorResponseException.class)
+    public ProblemDetail handleException(ServiceErrorResponseException exception){
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 this.messageSource.getMessage(

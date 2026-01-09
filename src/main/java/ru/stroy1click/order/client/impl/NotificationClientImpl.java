@@ -10,8 +10,8 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import ru.stroy1click.order.client.NotificationClient;
 import ru.stroy1click.order.dto.OrderDto;
-import ru.stroy1click.order.exception.ServerErrorResponseException;
 import ru.stroy1click.order.exception.ServiceUnavailableException;
+import ru.stroy1click.order.util.ValidationErrorUtils;
 
 @Slf4j
 @Service
@@ -35,8 +35,8 @@ public class NotificationClientImpl implements NotificationClient {
             this.restClient.post()
                     .body(orderDto)
                     .retrieve()
-                    .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                        throw new ServerErrorResponseException();
+                    .onStatus(HttpStatusCode::isError,(request, response) -> {
+                        ValidationErrorUtils.validateStatus(response);
                     })
                     .body(Void.class);
         } catch (ResourceAccessException e) {
