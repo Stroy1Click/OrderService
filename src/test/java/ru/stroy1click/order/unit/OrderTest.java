@@ -6,11 +6,8 @@ import org.mockito.*;
 import org.springframework.context.MessageSource;
 import ru.stroy1click.order.cache.CacheClear;
 import ru.stroy1click.order.client.NotificationClient;
-import ru.stroy1click.order.client.ProductClient;
-import ru.stroy1click.order.client.UserClient;
 import ru.stroy1click.order.dto.OrderDto;
 import ru.stroy1click.order.dto.OrderItemDto;
-import ru.stroy1click.order.dto.ProductDto;
 import ru.stroy1click.order.entity.Order;
 import ru.stroy1click.order.entity.OrderItem;
 import ru.stroy1click.order.exception.NotFoundException;
@@ -41,12 +38,6 @@ class OrderTest {
 
     @Mock
     private CacheClear cacheClear;
-
-    @Mock
-    private UserClient userClient;
-
-    @Mock
-    private ProductClient productClient;
 
     @Mock
     private NotificationClient notificationClient;
@@ -142,12 +133,8 @@ class OrderTest {
         when(this.orderItemMapper.toEntity(anyList())).thenReturn(List.of(this.orderItem));
         doNothing().when(this.notificationClient).sendOrderNotification(any(OrderDto.class));
 
-        when(this.productClient.get(100)).thenReturn(new ProductDto());
-
         this.orderService.create(this.orderDto);
 
-        verify(this.userClient).get(this.userId);
-        verify(this.productClient).get(100);
         assertEquals(newOrderEntity, this.orderItem.getOrder());
         verify(this.orderRepository).save(newOrderEntity);
     }

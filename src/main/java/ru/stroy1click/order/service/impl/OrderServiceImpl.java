@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.stroy1click.order.cache.CacheClear;
 import ru.stroy1click.order.client.NotificationClient;
-import ru.stroy1click.order.client.ProductClient;
-import ru.stroy1click.order.client.UserClient;
 import ru.stroy1click.order.dto.OrderDto;
 import ru.stroy1click.order.dto.OrderItemDto;
 import ru.stroy1click.order.entity.Order;
@@ -40,10 +38,6 @@ public class OrderServiceImpl implements OrderService {
     private final MessageSource messageSource;
 
     private final CacheClear cacheClear;
-
-    private final UserClient userClient;
-
-    private final ProductClient productClient;
 
     private final NotificationClient notificationClient;
 
@@ -76,28 +70,17 @@ public class OrderServiceImpl implements OrderService {
     public void create(OrderDto orderDto) {
         log.info("create {}", orderDto);
 
-        this.userClient.get(orderDto.getUserId());
-        orderDto.getOrderItems().stream()
-                .map(orderItemDto -> this.productClient.get(orderItemDto.getProductId()))
-                .toList();
-
         orderDto.setId(null);
         Order order = this.mapper.toEntity(orderDto);
-
+        // явно проставляем order всем каскадам
         List<OrderItem> orderItems = this.orderItemMapper.toEntity(orderDto.getOrderItems())
                 .stream()
                 .peek(orderItem -> orderItem.setOrder(order))
                 .toList();
-
         order.setOrderItems(orderItems);
 
         Order createdOrder = this.orderRepository.save(order);
-
-        OrderDto dto =  this.mapper.toDto(createdOrder);
-
-        this.notificationClient.sendOrderNotification(
-               dto
-        );
+        this.notificationClient.sendOrderNotification(this.mapper.toDto(createdOrder));
     }
 
     @Override
