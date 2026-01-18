@@ -10,7 +10,7 @@ public interface OrderService {
 
     List<OrderDto> getByUserId(Long userId);
 
-    void create(OrderDto orderDto);
+    OrderDto create(OrderDto orderDto);
 
     void update(Long id, OrderDto orderDto);
 
