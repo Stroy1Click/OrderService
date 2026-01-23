@@ -41,6 +41,8 @@ public class RedissonConfig {
         long oneDayMillis = 24 * 60 * 60 * 1000L; // 1 день
 
         config.put("order", new CacheConfig(oneDayMillis, 0));
+        config.put("allOrders", new CacheConfig(oneDayMillis, 0));
+        config.put("ordersByUserId", new CacheConfig(oneDayMillis, 0));
 
         return new RedissonSpringCacheManager(redissonClient, config);
     }

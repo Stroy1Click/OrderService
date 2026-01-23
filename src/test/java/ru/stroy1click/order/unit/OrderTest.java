@@ -108,6 +108,18 @@ class OrderTest {
         verify(this.orderRepository).findById(this.orderId);
     }
 
+    @Test
+    public void getAll_ShouldReturnList(){
+        when(this.orderRepository.findAll()).thenReturn(List.of(this.order));
+        when(this.orderMapper.toDto(List.of(this.order))).thenReturn(List.of(this.orderDto));
+
+        List<OrderDto> dtoList = this.orderService.getAll();
+
+        assertEquals(1, dtoList.size());
+        verify(this.orderRepository).findAll();
+        verify(this.orderMapper).toDto(List.of(this.order));
+    }
+
 
     @Test
     public void getByUserId_ShouldReturnList_WhenExists() {

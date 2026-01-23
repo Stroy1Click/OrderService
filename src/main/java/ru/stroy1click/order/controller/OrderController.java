@@ -11,7 +11,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.stroy1click.order.dto.OrderDto;
 import ru.stroy1click.order.exception.ValidationException;
-import ru.stroy1click.order.mapper.OrderItemMapper;
 import ru.stroy1click.order.service.OrderService;
 import ru.stroy1click.order.util.ValidationErrorUtils;
 
@@ -30,12 +29,16 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    private final OrderItemMapper orderItemMapper;
-
     @GetMapping("/{id}")
     @Operation(summary = "Получение заказа")
     public OrderDto get(@PathVariable("id") Long id){
         return this.orderService.get(id);
+    }
+
+    @GetMapping
+    @Operation(summary = "Получить все заказы")
+    public List<OrderDto> getAll(){
+        return this.orderService.getAll();
     }
 
     @GetMapping("/user")

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +46,7 @@ public class OrderServiceImpl implements OrderService {
     @Cacheable(cacheNames = "order", key = "#id")
     public OrderDto get(Long id) {
         log.info("get {}", id);
+
         return this.orderMapper.toDto(this.orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(
                         this.messageSource.getMessage(
@@ -56,9 +58,20 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Cacheable(value = "allOrders")
+    public List<OrderDto> getAll() {
+        log.info("getAll");
+
+        return this.orderMapper.toDto(
+                this.orderRepository.findAll()
+        );
+    }
+
+    @Override
     @Cacheable(cacheNames = "ordersByUserId", key = "#userId")
     public List<OrderDto> getByUserId(Long userId) {
         log.info("getByUserId {}", userId);
+
         return this.orderMapper.toDto(
                 this.orderRepository.findByUserId(userId)
         );
@@ -66,7 +79,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "ordersByUserId", key = "#orderDto.userId")
+    @Caching(evict = {
+            @CacheEvict(value = "ordersByUserId", key = "#orderDto.userId"),
+            @CacheEvict(value = "allOrders", allEntries = true)
+    })
     public OrderDto create(OrderDto orderDto) {
         log.info("create {}", orderDto);
 
@@ -90,16 +106,21 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "order", key = "#id")
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "order", key = "#id"),
+            @CacheEvict(value = "ordersByUserId", key = "#orderDto.userId"),
+            @CacheEvict(value = "allOrders", allEntries = true)
+    })
     public void update(Long id, OrderDto orderDto) {
         log.info("update {}, {}", id, orderDto);
+
         this.orderRepository.findById(id).ifPresentOrElse(order -> {
             List<OrderItemDto> orderItems = this.orderItemMapper.toDto(order.getOrderItems());
             OrderDto updatedOrderDto = OrderDto.builder()
                     .id(id)
                     .notes(orderDto.getNotes())
                     .orderStatus(orderDto.getOrderStatus())
-                    .createdAt(orderDto.getCreatedAt())
+                    .createdAt(order.getCreatedAt())
                     .updatedAt(LocalDateTime.now())
                     .orderItems(orderItems)
                     .contactPhone(orderDto.getContactPhone())
@@ -120,9 +141,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "order", key = "#id")
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "order", key = "#id"),
+            @CacheEvict(value = "allOrders", allEntries = true)
+    })
     public void delete(Long id) {
         log.info("delete {}", id);
+
         Order order = this.orderRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(
                         this.messageSource.getMessage(

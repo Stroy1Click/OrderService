@@ -46,6 +46,18 @@ class OrderTests {
     }
 
     @Test
+    public void getAll_ShouldReturnAllOrdersAndItems(){
+        ResponseEntity<OrderDto[]> response = this.testRestTemplate.getForEntity(
+                "/api/v1/orders",
+                OrderDto[].class
+        );
+
+        Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
+        Assertions.assertNotNull(response.getBody());
+        Assertions.assertTrue(response.getBody().length != 0);
+    }
+
+    @Test
     public void createOrder_ShouldReturnSuccessfulMessage() {
         doNothing().when(this.notificationClient).sendOrderNotification(any(OrderDto.class));
 
