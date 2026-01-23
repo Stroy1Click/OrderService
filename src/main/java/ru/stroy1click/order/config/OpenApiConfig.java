@@ -14,6 +14,6 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("Stroy1Click - Order Service")
                         .version("1.0")
-                        .description("Документация API для product service"));
+                        .description("Документация API для order service"));
     }
 }

@@ -8,9 +8,11 @@ public interface OrderService {
 
     OrderDto get(Long id);
 
+    List<OrderDto> getAll();
+
     List<OrderDto> getByUserId(Long userId);
 
-    void create(OrderDto orderDto);
+    OrderDto create(OrderDto orderDto);
 
     void update(Long id, OrderDto orderDto);
 

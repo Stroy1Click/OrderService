@@ -11,10 +11,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.stroy1click.order.dto.OrderDto;
 import ru.stroy1click.order.exception.ValidationException;
-import ru.stroy1click.order.mapper.OrderItemMapper;
 import ru.stroy1click.order.service.OrderService;
 import ru.stroy1click.order.util.ValidationErrorUtils;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 
@@ -29,12 +29,16 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    private final OrderItemMapper orderItemMapper;
-
     @GetMapping("/{id}")
     @Operation(summary = "Получение заказа")
     public OrderDto get(@PathVariable("id") Long id){
         return this.orderService.get(id);
+    }
+
+    @GetMapping
+    @Operation(summary = "Получить все заказы")
+    public List<OrderDto> getAll(){
+        return this.orderService.getAll();
     }
 
     @GetMapping("/user")
@@ -45,21 +49,17 @@ public class OrderController {
 
     @PostMapping
     @Operation(summary = "Создание заказа")
-    public ResponseEntity<String> create(@RequestBody @Valid OrderDto orderDto,
+    public ResponseEntity<OrderDto> create(@RequestBody @Valid OrderDto orderDto,
                                          BindingResult bindingResult){
         if(bindingResult.hasFieldErrors()) throw new ValidationException(ValidationErrorUtils.collectErrorsToString(
                 bindingResult.getFieldErrors()
         ));
 
-        this.orderService.create(orderDto);
+        OrderDto createdOrder = this.orderService.create(orderDto);
 
-        return ResponseEntity.ok(
-                this.messageSource.getMessage(
-                        "info.order.create",
-                        null,
-                        Locale.getDefault()
-                )
-        );
+        return ResponseEntity
+                .created(URI.create("/api/v1/orders/" + createdOrder.getId()))
+                .body(createdOrder);
     }
 
     @PatchMapping("/{id}")

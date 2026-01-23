@@ -46,6 +46,18 @@ class OrderTests {
     }
 
     @Test
+    public void getAll_ShouldReturnAllOrdersAndItems(){
+        ResponseEntity<OrderDto[]> response = this.testRestTemplate.getForEntity(
+                "/api/v1/orders",
+                OrderDto[].class
+        );
+
+        Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
+        Assertions.assertNotNull(response.getBody());
+        Assertions.assertTrue(response.getBody().length != 0);
+    }
+
+    @Test
     public void createOrder_ShouldReturnSuccessfulMessage() {
         doNothing().when(this.notificationClient).sendOrderNotification(any(OrderDto.class));
 
@@ -62,11 +74,11 @@ class OrderTests {
                 .userId(600L)
                 .build();
 
-        ResponseEntity<String> response = this.testRestTemplate.
-                postForEntity("/api/v1/orders", dto, String.class);
+        ResponseEntity<OrderDto> response = this.testRestTemplate.
+                postForEntity("/api/v1/orders", dto, OrderDto.class);
 
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertEquals("Заказ создан", response.getBody());
+        Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Assertions.assertEquals("Новый заказ для тестирования POST", response.getBody().getNotes());
     }
 
     @Test
@@ -138,7 +150,7 @@ class OrderTests {
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
 
         Assertions.assertEquals("Не найдено", response.getBody().getTitle());
-        Assertions.assertEquals("Пользователь с электронной почтой Заказ не найден не найден", response.getBody().getDetail());
+        Assertions.assertEquals("Заказ не найден не найден", response.getBody().getDetail());
     }
 
     @Test

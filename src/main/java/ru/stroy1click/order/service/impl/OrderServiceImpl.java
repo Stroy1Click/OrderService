@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +32,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
 
-    private final OrderMapper mapper;
+    private final OrderMapper orderMapper;
 
     private final OrderItemMapper orderItemMapper;
 
@@ -45,7 +46,8 @@ public class OrderServiceImpl implements OrderService {
     @Cacheable(cacheNames = "order", key = "#id")
     public OrderDto get(Long id) {
         log.info("get {}", id);
-        return this.mapper.toDto(this.orderRepository.findById(id)
+
+        return this.orderMapper.toDto(this.orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(
                         this.messageSource.getMessage(
                                 "error.order.not_found",
@@ -56,22 +58,36 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Cacheable(value = "allOrders")
+    public List<OrderDto> getAll() {
+        log.info("getAll");
+
+        return this.orderMapper.toDto(
+                this.orderRepository.findAll()
+        );
+    }
+
+    @Override
     @Cacheable(cacheNames = "ordersByUserId", key = "#userId")
     public List<OrderDto> getByUserId(Long userId) {
         log.info("getByUserId {}", userId);
-        return this.mapper.toDto(
+
+        return this.orderMapper.toDto(
                 this.orderRepository.findByUserId(userId)
         );
     }
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "ordersByUserId", key = "#orderDto.userId")
-    public void create(OrderDto orderDto) {
+    @Caching(evict = {
+            @CacheEvict(value = "ordersByUserId", key = "#orderDto.userId"),
+            @CacheEvict(value = "allOrders", allEntries = true)
+    })
+    public OrderDto create(OrderDto orderDto) {
         log.info("create {}", orderDto);
 
         orderDto.setId(null);
-        Order order = this.mapper.toEntity(orderDto);
+        Order order = this.orderMapper.toEntity(orderDto);
         // явно проставляем order всем каскадам
         List<OrderItem> orderItems = this.orderItemMapper.toEntity(orderDto.getOrderItems())
                 .stream()
@@ -79,29 +95,39 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
         order.setOrderItems(orderItems);
 
-        Order createdOrder = this.orderRepository.save(order);
-        this.notificationClient.sendOrderNotification(this.mapper.toDto(createdOrder));
+        OrderDto createdOrder = this.orderMapper.toDto(
+                this.orderRepository.save(order)
+        );
+
+        this.notificationClient.sendOrderNotification(createdOrder);
+
+        return createdOrder;
     }
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "order", key = "#id")
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "order", key = "#id"),
+            @CacheEvict(value = "ordersByUserId", key = "#orderDto.userId"),
+            @CacheEvict(value = "allOrders", allEntries = true)
+    })
     public void update(Long id, OrderDto orderDto) {
         log.info("update {}, {}", id, orderDto);
+
         this.orderRepository.findById(id).ifPresentOrElse(order -> {
             List<OrderItemDto> orderItems = this.orderItemMapper.toDto(order.getOrderItems());
             OrderDto updatedOrderDto = OrderDto.builder()
                     .id(id)
                     .notes(orderDto.getNotes())
                     .orderStatus(orderDto.getOrderStatus())
-                    .createdAt(orderDto.getCreatedAt())
+                    .createdAt(order.getCreatedAt())
                     .updatedAt(LocalDateTime.now())
                     .orderItems(orderItems)
                     .contactPhone(orderDto.getContactPhone())
                     .userId(order.getUserId())
                     .build();
 
-            this.orderRepository.save(this.mapper.toEntity(updatedOrderDto));
+            this.orderRepository.save(this.orderMapper.toEntity(updatedOrderDto));
         }, () -> {
             throw new NotFoundException(
                     this.messageSource.getMessage(
@@ -115,9 +141,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "order", key = "#id")
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "order", key = "#id"),
+            @CacheEvict(value = "allOrders", allEntries = true)
+    })
     public void delete(Long id) {
         log.info("delete {}", id);
+
         Order order = this.orderRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(
                         this.messageSource.getMessage(
