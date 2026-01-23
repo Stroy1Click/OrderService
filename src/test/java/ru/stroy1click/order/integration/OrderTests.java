@@ -150,7 +150,7 @@ class OrderTests {
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
 
         Assertions.assertEquals("Не найдено", response.getBody().getTitle());
-        Assertions.assertEquals("Заказ не найден не найден", response.getBody().getDetail());
+        Assertions.assertEquals("Заказ не найден", response.getBody().getDetail());
     }
 
     @Test
