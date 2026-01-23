@@ -21,7 +21,7 @@ public class NotificationClientImpl implements NotificationClient {
     private final RestClient restClient;
 
 
-    public NotificationClientImpl(@Value(value = "${url.service.notification}") String url) {
+    public NotificationClientImpl(@Value(value = "${url.notification}") String url) {
         this.restClient = RestClient.builder()
                 .baseUrl(url)
                 .build();

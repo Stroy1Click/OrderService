@@ -8,6 +8,10 @@ spring:
   cache:
     type: redis
     cache-names: redis-cache
+  data:
+    redis:
+      host: localhost
+      port: 6379
   jpa:
     hibernate:
       ddl-auto: validate
@@ -32,10 +36,7 @@ redisson:
   port: 6379
 
 url:
-  service:
-    product: http://localhost:7070/api/v1/products
-    user: http://localhost:8080/api/v1/users
-    notification: http://localhost:2020/api/v1/notifications
+  notification: http://localhost:2020/api/v1/notifications
 
 resilience4j:
   circuitbreaker:
