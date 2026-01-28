@@ -33,6 +33,8 @@ spring:
 redisson:
   host: 127.0.0.1
   port: 6379
+  username: default
+  password: password
 
 url:
   notification: http://localhost:2020/api/v1/notifications
