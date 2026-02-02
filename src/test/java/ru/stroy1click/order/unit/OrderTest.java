@@ -13,7 +13,7 @@ import ru.stroy1click.order.entity.OrderItem;
 import ru.stroy1click.order.exception.NotFoundException;
 import ru.stroy1click.order.mapper.OrderItemMapper;
 import ru.stroy1click.order.mapper.OrderMapper;
-import ru.stroy1click.order.model.OrderStatus;
+import ru.stroy1click.order.entity.OrderStatus;
 import ru.stroy1click.order.repository.OrderRepository;
 import ru.stroy1click.order.service.impl.OrderServiceImpl;
 
