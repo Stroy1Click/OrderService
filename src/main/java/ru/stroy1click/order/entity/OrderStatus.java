@@ -1,4 +1,4 @@
-package ru.stroy1click.order.model;
+package ru.stroy1click.order.entity;
 
 public enum OrderStatus {
     CREATED, PAID, SHIPPED, DELIVERED, CANCELLED

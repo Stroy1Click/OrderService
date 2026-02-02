@@ -11,7 +11,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.stroy1click.order.client.NotificationClient;
 import ru.stroy1click.order.dto.OrderDto;
 import ru.stroy1click.order.dto.OrderItemDto;
-import ru.stroy1click.order.model.OrderStatus;
+import ru.stroy1click.order.entity.OrderStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 

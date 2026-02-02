@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.stroy1click.order.model.OrderStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;

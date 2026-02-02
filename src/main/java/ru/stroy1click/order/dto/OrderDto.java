@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
-import ru.stroy1click.order.model.OrderStatus;
+import ru.stroy1click.order.entity.OrderStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
