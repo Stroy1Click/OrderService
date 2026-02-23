@@ -8,10 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.stroy1click.order.exception.NotFoundException;
-import ru.stroy1click.order.exception.ServiceErrorResponseException;
-import ru.stroy1click.order.exception.ServiceUnavailableException;
-import ru.stroy1click.order.exception.ValidationException;
+import ru.stroy1click.common.exception.NotFoundException;
+import ru.stroy1click.common.exception.ServiceErrorResponseException;
+import ru.stroy1click.common.exception.ServiceUnavailableException;
+import ru.stroy1click.common.exception.ValidationException;
 
 import java.util.Locale;
 

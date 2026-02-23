@@ -3,6 +3,8 @@ package ru.stroy1click.order.mapper;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
+import ru.stroy1click.common.event.OrderItemEvent;
+import ru.stroy1click.common.mapper.Mappable;
 import ru.stroy1click.order.dto.OrderItemDto;
 import ru.stroy1click.order.entity.OrderItem;
 
@@ -10,7 +12,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class OrderItemMapper implements Mappable<OrderItem, OrderItemDto>{
+public class OrderItemMapper implements Mappable<OrderItem, OrderItemDto> {
 
     private final ModelMapper modelMapper;
 
@@ -37,4 +39,9 @@ public class OrderItemMapper implements Mappable<OrderItem, OrderItemDto>{
                 .toList();
     }
 
+    public List<OrderItemEvent> toEvent(List<OrderItemDto> dto) {
+        return dto.stream()
+                .map(orderItemDto -> this.modelMapper.map(orderItemDto, OrderItemEvent.class))
+                .toList();
+    }
 }
