@@ -8,17 +8,18 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.stroy1click.common.event.OrderCreatedEvent;
 import ru.stroy1click.order.cache.CacheClear;
-import ru.stroy1click.order.client.NotificationClient;
 import ru.stroy1click.order.dto.OrderDto;
 import ru.stroy1click.order.dto.OrderItemDto;
 import ru.stroy1click.order.entity.Order;
 import ru.stroy1click.order.entity.OrderItem;
-import ru.stroy1click.order.exception.NotFoundException;
+import ru.stroy1click.common.exception.NotFoundException;
 import ru.stroy1click.order.mapper.OrderItemMapper;
 import ru.stroy1click.order.mapper.OrderMapper;
 import ru.stroy1click.order.repository.OrderRepository;
 import ru.stroy1click.order.service.OrderService;
+import ru.stroy1click.outbox.service.OutboxEventService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,7 +41,9 @@ public class OrderServiceImpl implements OrderService {
 
     private final CacheClear cacheClear;
 
-    private final NotificationClient notificationClient;
+    private final OutboxEventService outboxEventService;
+
+    private final static String ORDER_CREATED_TOPIC = "order-created-events";
 
     @Override
     @Cacheable(cacheNames = "order", key = "#id")
@@ -88,6 +91,7 @@ public class OrderServiceImpl implements OrderService {
 
         orderDto.setId(null);
         Order order = this.orderMapper.toEntity(orderDto);
+
         // явно проставляем order всем каскадам
         List<OrderItem> orderItems = this.orderItemMapper.toEntity(orderDto.getOrderItems())
                 .stream()
@@ -99,7 +103,7 @@ public class OrderServiceImpl implements OrderService {
                 this.orderRepository.save(order)
         );
 
-        this.notificationClient.sendOrderNotification(createdOrder);
+        this.outboxEventService.save(ORDER_CREATED_TOPIC, createdEvent(createdOrder));
 
         return createdOrder;
     }
@@ -118,12 +122,19 @@ public class OrderServiceImpl implements OrderService {
             List<OrderItemDto> orderItems = this.orderItemMapper.toDto(order.getOrderItems());
             OrderDto updatedOrderDto = OrderDto.builder()
                     .id(id)
+                    .legalForm(orderDto.getLegalForm())
+                    .legalName(orderDto.getLegalName())
+                    .inn(orderDto.getLegalName())
+                    .kpp(orderDto.getLegalName())
                     .notes(orderDto.getNotes())
                     .orderStatus(orderDto.getOrderStatus())
                     .createdAt(order.getCreatedAt())
                     .updatedAt(LocalDateTime.now())
                     .orderItems(orderItems)
+                    .contactName(orderDto.getContactName())
                     .contactPhone(orderDto.getContactPhone())
+                    .contactEmail(orderDto.getContactEmail())
+                    .deliveryAddress(orderDto.getDeliveryAddress())
                     .userId(order.getUserId())
                     .build();
 
@@ -161,5 +172,25 @@ public class OrderServiceImpl implements OrderService {
         this.orderRepository.delete(order);
 
         this.cacheClear.clearOrdersByUserId(order.getUserId());
+    }
+
+    private OrderCreatedEvent createdEvent(OrderDto createdOrder){
+        return OrderCreatedEvent.builder()
+                .id(createdOrder.getId())
+                .contactEmail(createdOrder.getContactEmail())
+                .contactName(createdOrder.getContactName())
+                .contactPhone(createdOrder.getContactPhone())
+                .createdAt(createdOrder.getCreatedAt())
+                .updatedAt(createdOrder.getUpdatedAt())
+                .deliveryAddress(createdOrder.getDeliveryAddress())
+                .inn(createdOrder.getInn())
+                .kpp(createdOrder.getKpp())
+                .notes(createdOrder.getNotes())
+                .legalForm(createdOrder.getLegalForm())
+                .legalName(createdOrder.getLegalName())
+                .orderItems(this.orderItemMapper.toEvent(createdOrder.getOrderItems()))
+                .orderStatus(createdOrder.getOrderStatus())
+                .userId(createdOrder.getUserId())
+                .build();
     }
 }

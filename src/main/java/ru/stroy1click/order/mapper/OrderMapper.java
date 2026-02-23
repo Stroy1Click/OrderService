@@ -3,6 +3,7 @@ package ru.stroy1click.order.mapper;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
+import ru.stroy1click.common.mapper.Mappable;
 import ru.stroy1click.order.dto.OrderDto;
 import ru.stroy1click.order.entity.Order;
 
@@ -10,7 +11,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class OrderMapper implements Mappable<Order, OrderDto>{
+public class OrderMapper implements Mappable<Order, OrderDto> {
 
     private final ModelMapper modelMapper;
 
@@ -30,5 +31,4 @@ public class OrderMapper implements Mappable<Order, OrderDto>{
                 .map(product -> this.modelMapper.map(product, OrderDto.class))
                 .toList();
     }
-
 }

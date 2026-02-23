@@ -1,7 +1,7 @@
-package ru.stroy1click.order.integration;
+package ru.stroy1click.order;
 
 import org.springframework.boot.SpringApplication;
-import ru.stroy1click.order.Stroy1ClickOrderServiceApplication;
+import ru.stroy1click.order.config.TestcontainersConfiguration;
 
 public class TestStroy1ClickOrderServiceApplication {
 

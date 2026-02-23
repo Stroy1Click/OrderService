@@ -10,9 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.stroy1click.order.dto.OrderDto;
-import ru.stroy1click.order.exception.ValidationException;
+import ru.stroy1click.common.exception.ValidationException;
 import ru.stroy1click.order.service.OrderService;
-import ru.stroy1click.order.util.ValidationErrorUtils;
+import ru.stroy1click.common.util.ValidationErrorUtils;
 
 import java.net.URI;
 import java.util.List;

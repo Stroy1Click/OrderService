@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.stroy1click.common.dto.Unit;
+
+import java.math.BigDecimal;
 
 @Data
 @Table(schema = "ordering", name = "order_items")
@@ -21,7 +24,14 @@ public class OrderItem {
 
     private Integer productId;
 
+    private String productTitle;
+
+    private BigDecimal price;
+
     private Integer quantity;
+
+    @Enumerated(EnumType.STRING)
+    private Unit unit;
 
     @ManyToOne
     @JoinColumn(name = "order_id", referencedColumnName = "id")
