@@ -9,19 +9,17 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.stroy1click.common.event.OrderCreatedEvent;
+import ru.stroy1click.common.exception.NotFoundException;
 import ru.stroy1click.order.cache.CacheClear;
 import ru.stroy1click.order.dto.OrderDto;
-import ru.stroy1click.order.dto.OrderItemDto;
 import ru.stroy1click.order.entity.Order;
 import ru.stroy1click.order.entity.OrderItem;
-import ru.stroy1click.common.exception.NotFoundException;
 import ru.stroy1click.order.mapper.OrderItemMapper;
 import ru.stroy1click.order.mapper.OrderMapper;
 import ru.stroy1click.order.repository.OrderRepository;
 import ru.stroy1click.order.service.OrderService;
 import ru.stroy1click.outbox.service.OutboxEventService;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -119,27 +117,16 @@ public class OrderServiceImpl implements OrderService {
         log.info("update {}, {}", id, orderDto);
 
         this.orderRepository.findById(id).ifPresentOrElse(order -> {
-            List<OrderItemDto> orderItems = this.orderItemMapper.toDto(order.getOrderItems());
-            OrderDto updatedOrderDto = OrderDto.builder()
-                    .id(id)
-                    .legalForm(orderDto.getLegalForm())
-                    .legalName(orderDto.getLegalName())
-                    .inn(orderDto.getLegalName())
-                    .kpp(orderDto.getLegalName())
-                    .notes(orderDto.getNotes())
-                    .orderStatus(orderDto.getOrderStatus())
-                    .createdAt(order.getCreatedAt())
-                    .updatedAt(LocalDateTime.now())
-                    .orderItems(orderItems)
-                    .contactName(orderDto.getContactName())
-                    .contactPhone(orderDto.getContactPhone())
-                    .contactEmail(orderDto.getContactEmail())
-                    .deliveryAddress(orderDto.getDeliveryAddress())
-                    .userId(order.getUserId())
-                    .build();
-
-            this.orderRepository.save(this.orderMapper.toEntity(updatedOrderDto));
-        }, () -> {
+            order.setLegalForm(orderDto.getLegalForm());
+            order.setLegalName(orderDto.getLegalName());
+            order.setInn(orderDto.getInn());
+            order.setKpp(orderDto.getKpp());
+            order.setNotes(orderDto.getNotes());
+            order.setContactName(orderDto.getContactName());
+            order.setContactPhone(orderDto.getContactPhone());
+            order.setContactEmail(orderDto.getContactEmail());
+            order.setDeliveryAddress(orderDto.getDeliveryAddress());
+            }, () -> {
             throw new NotFoundException(
                     this.messageSource.getMessage(
                             "error.order.not_found",

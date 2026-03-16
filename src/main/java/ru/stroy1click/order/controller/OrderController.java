@@ -41,7 +41,7 @@ public class OrderController {
         return this.orderService.getAll();
     }
 
-    @GetMapping("/user")
+    @GetMapping(params = "userId")
     @Operation(summary = "Получение всех заказов пользователя")
     public List<OrderDto> getByUserId(@RequestParam("userId") Long userId){
         return this.orderService.getByUserId(userId);
