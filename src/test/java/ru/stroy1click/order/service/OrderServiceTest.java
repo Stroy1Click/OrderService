@@ -3,7 +3,6 @@ package ru.stroy1click.order.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -120,7 +119,6 @@ class OrderServiceTest {
     public void get_WhenOrderDoesNotExist_ShouldThrowNotFoundException() {
         //Arrange
         when(this.orderRepository.findById(orderId)).thenReturn(Optional.empty());
-        when(this.messageSource.getMessage(eq("error.order.not_found"), any(), any())).thenReturn("Заказ не найден");
 
         //Act & Assert
         assertThrows(NotFoundException.class, () -> this.orderService.get(orderId));
@@ -199,27 +197,36 @@ class OrderServiceTest {
     @Test
     public void update_WhenValidDataProvidedAndOrderExists_ShouldSaveUpdatedOrder() {
         //Arrange
+        OrderDto newOrder = OrderDto.builder()
+                .id(orderId)
+                .inn("1234567890")
+                .kpp("123456789")
+                .orderStatus(OrderStatus.CREATED)
+                .notes("New notes")
+                .contactPhone("+79999999999")
+                .contactName("New Contact Name")
+                .contactEmail("contactemail@gmail.com")
+                .deliveryAddress("New Delivery Address")
+                .legalName("Company")
+                .legalForm(LegalForm.LLC)
+                .userId(userId)
+                .orderItems(List.of(orderItemDto))
+                .build();
         when(this.orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-        when(this.orderMapper.toEntity(any(OrderDto.class))).thenReturn(order);
 
         //Act
-        this.orderService.update(orderId, orderDto);
+        this.orderService.update(orderId, newOrder);
 
         //Assert
-        ArgumentCaptor<OrderDto> dtoCaptor = ArgumentCaptor.forClass(OrderDto.class);
-        verify(this.orderMapper).toEntity(dtoCaptor.capture());
-
-        OrderDto capturedDto = dtoCaptor.getValue();
-
-        assertEquals(orderId, capturedDto.getId());
-        verify(this.orderRepository).save(order);
+        assertEquals("New notes", order.getNotes());
+        assertEquals("New Delivery Address", order.getDeliveryAddress());
+        assertEquals("New Contact Name", order.getContactName());
     }
 
     @Test
     public void update_WhenOrderDoesNotExist_ShouldThrowNotFoundException() {
         //Arrange
         when(this.orderRepository.findById(orderId)).thenReturn(Optional.empty());
-        when(this.messageSource.getMessage(eq("error.order.not_found"), any(), any())).thenReturn("Заказ не найден");
 
         //Act & Assert
         assertThrows(NotFoundException.class, () -> this.orderService.update(orderId, orderDto));
@@ -243,7 +250,6 @@ class OrderServiceTest {
     public void delete_WhenOrderDoesNotExist_ShouldThrowNotFoundException() {
         //Arrange
         when(this.orderRepository.findById(orderId)).thenReturn(Optional.empty());
-        when(this.messageSource.getMessage(eq("error.order.not_found"), any(), any())).thenReturn("Заказ не найден");
 
         //Act & Assert
         assertThrows(NotFoundException.class, () -> this.orderService.delete(orderId));
