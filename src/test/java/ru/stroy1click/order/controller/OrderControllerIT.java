@@ -111,7 +111,7 @@ class OrderControllerIT {
                 .legalName("Company")
                 .legalForm(LegalForm.LLC)
                 .userId(600L)
-                .orderItems(List.of())
+                .orderItems(List.of(item))
                 .build();
 
         //Act
@@ -140,16 +140,16 @@ class OrderControllerIT {
     @Order(6)
     public void get_WhenOrderDoesNotExist_ShouldThrowNotFoundException() {
         //Arrange
-        Long nonExistentId = 99999L;
+        Long notExistsId = 99999L;
 
         //Act
         ResponseEntity<ProblemDetail> response = this.testRestTemplate
-                .getForEntity("/api/v1/orders/" + "{id}", ProblemDetail.class, nonExistentId);
+                .getForEntity("/api/v1/orders/" + "{id}", ProblemDetail.class, notExistsId);
 
         //Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals("Не найдено", response.getBody().getTitle());
-        assertEquals("Заказ не найден", response.getBody().getDetail());
+        assertEquals("Заказ с id %d не найден".formatted(notExistsId), response.getBody().getDetail());
     }
 
     @Test

@@ -5,11 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.stroy1click.common.event.OrderCreatedEvent;
-import ru.stroy1click.common.exception.NotFoundException;
+import ru.stroy1click.common.util.ExceptionUtils;
 import ru.stroy1click.order.cache.CacheClear;
 import ru.stroy1click.order.dto.OrderDto;
 import ru.stroy1click.order.entity.Order;
@@ -21,7 +20,6 @@ import ru.stroy1click.order.service.OrderService;
 import ru.stroy1click.outbox.service.OutboxEventService;
 
 import java.util.List;
-import java.util.Locale;
 
 @Slf4j
 @Service
@@ -35,8 +33,6 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderItemMapper orderItemMapper;
 
-    private final MessageSource messageSource;
-
     private final CacheClear cacheClear;
 
     private final OutboxEventService outboxEventService;
@@ -48,14 +44,10 @@ public class OrderServiceImpl implements OrderService {
     public OrderDto get(Long id) {
         log.info("get {}", id);
 
-        return this.orderMapper.toDto(this.orderRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(
-                        this.messageSource.getMessage(
-                                "error.order.not_found",
-                                null,
-                                Locale.getDefault()
-                        )
-                )));
+        Order order = this.orderRepository.findById(id)
+                .orElseThrow(() -> ExceptionUtils.notFound("error.order.not_found", id));
+
+        return this.orderMapper.toDto(order);
     }
 
     @Override
@@ -126,14 +118,9 @@ public class OrderServiceImpl implements OrderService {
             order.setContactPhone(orderDto.getContactPhone());
             order.setContactEmail(orderDto.getContactEmail());
             order.setDeliveryAddress(orderDto.getDeliveryAddress());
+            order.setOrderStatus(orderDto.getOrderStatus());
             }, () -> {
-            throw new NotFoundException(
-                    this.messageSource.getMessage(
-                            "error.order.not_found",
-                            null,
-                            Locale.getDefault()
-                    )
-            );
+            throw ExceptionUtils.notFound("error.order.not_found", id);
         });
     }
 
@@ -146,15 +133,8 @@ public class OrderServiceImpl implements OrderService {
     public void delete(Long id) {
         log.info("delete {}", id);
 
-        Order order = this.orderRepository.findById(id).orElseThrow(
-                () -> new NotFoundException(
-                        this.messageSource.getMessage(
-                                "error.order.not_found",
-                                null,
-                                Locale.getDefault()
-                        )
-                )
-        );
+        Order order = this.orderRepository.findById(id)
+                .orElseThrow(() -> ExceptionUtils.notFound("error.order.not_found", id));
 
         this.orderRepository.delete(order);
 
